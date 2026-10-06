@@ -1,5 +1,6 @@
 #include <iostream>
 #include <cassert> // for assert
+#include <cmath> 
 
 #include <glad/glad.h>
 #include <GLFW/glfw3.h>
@@ -16,9 +17,13 @@ static void error_callback(int error, const char *description)
 	std::cout << "Error: " <<  description << "\n";
 }
 
-GLuint VAO, VBO, shader;
+GLuint VAO, VBO, shader, uniformXMove;
 
-static void CreateTriangle(GLfloat* vertices) // don't forget arrays become pointers!
+bool direction = true; 
+float triOffset = 0.0f, triMaxoffSet = 0.7f, triIncrement = 0.005f; 
+
+
+static void CreateTriangle(GLfloat* vertices) // don't forget arrays downgrade to pointers!
 {
     // generating and binding the VAO
     glGenVertexArrays(1, &VAO);
@@ -40,7 +45,7 @@ static void CreateTriangle(GLfloat* vertices) // don't forget arrays become poin
     // This unbinds the VBO and VAO
     glBindBuffer(GL_ARRAY_BUFFER, 0);
     glBindVertexArray(0); 
-}
+} 
 
 void AddShaders(
     GLuint program, 
@@ -62,7 +67,6 @@ void AddShaders(
     // We call these function as we are currently making the shaders!
     glGetShaderiv(shader, GL_COMPILE_STATUS, &res);
 
-    std::cout << "res: " << res << '\n';
     if (res == GL_FALSE) {
         glGetShaderInfoLog(shader, sizeof(errLog), nullptr, errLog);
         std::cout << "Shader Compiling Error for the " << shaderType << " shader: \n" << errLog << '\n';
@@ -77,8 +81,8 @@ void CompileShader(const ShaderSource& shaders)
 {
     shader = glCreateProgram();
 
-    if (!shader) {
-        assert(shader == true); 
+    if (shader == GL_FALSE) {
+        assert(shader == GL_TRUE); 
     }
 
     AddShaders(shader, shaders.vertexShader, GL_VERTEX_SHADER);
@@ -94,7 +98,6 @@ void CompileShader(const ShaderSource& shaders)
 
     // if res is false, then we will get the log and print it to the console!
 
-    std::cout << "res: " << res << '\n';
     if (res == GL_FALSE) {
         glGetProgramInfoLog(shader, sizeof(errLog), nullptr, errLog);
         std::cout << "Shader Linking Error: " << errLog << '\n'; 
@@ -105,13 +108,15 @@ void CompileShader(const ShaderSource& shaders)
     glValidateProgram(shader); 
     glGetProgramiv(shader, GL_VALIDATE_STATUS, &res);
 
-    std::cout << "res: " << res << '\n';
     if (res == GL_FALSE) {
         glGetProgramInfoLog(shader, sizeof(errLog), nullptr, errLog);
         std::cout << "Shader Validation Error: " << errLog << '\n';
 
         assert(res == GL_TRUE);
     }
+
+    // This givs us the location of where the uniform variable we are looking for is
+    uniformXMove = glGetUniformLocation(shader, "xMove"); 
 }
 
 int main(void)
@@ -123,7 +128,7 @@ int main(void)
         return -1;
   
     /* Create a windowed mode window and its OpenGL context */
-    GLFWwindow* window = glfwCreateWindow(640, 480, "Hello World", NULL, NULL);
+    GLFWwindow* window = glfwCreateWindow(1920, 1080, "Hello World", NULL, NULL);
     if (!window)
     {
         glfwTerminate();
@@ -146,8 +151,8 @@ int main(void)
     GLfloat vertices[] = {
         -1.0f, -1.0f, 0.0f, 
          1.0f, -1.0f, 0.0f, 
-         0.0f, 1.0f, 0.0f, 
-      //  x     y     z
+         0.0f,  1.0f, 0.0f, 
+     //   x      y     z
     };
 
     ShaderSource shaders = getShaders(
@@ -161,6 +166,22 @@ int main(void)
     /* Loop until the user closes the window */
     while (!glfwWindowShouldClose(window))
     {
+        /* Poll for and process events */
+        glfwPollEvents();
+
+        if (direction)
+        {
+            triOffset += triIncrement;
+        }
+        else
+        {
+            triOffset -= triIncrement;
+        }
+
+        if (abs(triOffset) >= triMaxoffSet) {
+            direction = !direction;
+        }
+
         // chnages the background color
         glClearColor(0.0f, 0.5f, 0.5f, 0.25f);
 
@@ -171,6 +192,9 @@ int main(void)
 
         glUseProgram(shader);
 
+        // This binds the uniform in the shader with our current data
+        glUniform1f(uniformXMove, triOffset);
+
         glBindVertexArray(VAO);
         glDrawArrays(GL_TRIANGLES, 0, 3);
         glBindVertexArray(0);
@@ -179,9 +203,6 @@ int main(void)
 
         /* Swap front and back buffers */
         glfwSwapBuffers(window);
-
-        /* Poll for and process events */
-        glfwPollEvents();
     }
 
     glfwDestroyWindow(window);
