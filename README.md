@@ -20,3 +20,7 @@ The topics include but aren't limited to:
 Essentially, every topic that the udemy course goes over will be documented in this repo and more. As mentioned I will be learning CMake, but I will be doing a more hands on approach. 
 
 Instead of me learning like how I did in the past with my Learning CMake repo, I will instead use the [GLFW template](https://github.com/meemknight/GLFWCMakeSetup) that [_Low Level Game Dev_](https://www.youtube.com/watch?v=FrVABOhRyQg&t=203s) created and learn CMake while also learning OpenGL!
+
+
+Here is also a collection of all my notes for Linear Algebra:
+1. [_Vectors and Simple Vector Operations_](https://docs.google.com/document/d/1a8gmo0m1X0zVcGFAigFK96HluDw1qBwM25-N8eH-LT4/edit?usp=sharing)
