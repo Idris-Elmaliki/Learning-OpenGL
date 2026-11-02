@@ -4,18 +4,20 @@
 layout (location = 0) in vec3 pos; 
 
 /*
-* This is an uniform variable 
+* Above is an attrribute variable 
 * 
-* We can imagine an uniform variable as a variable that like att 
+* We can understand an attrribute variable to be a piece of data that is ONLY for a specific shaders!!!
+* It's NOT shared acrossed other shaders!
+* 
+* Below is an uniform variable 
+* 
+* We can understand an uniform variable as a variable that provides data for multiple shaders!!!
+* It can and IS used for multiple shaders!
 */
-uniform float xMove; 
+
+uniform mat4 model; 
 
 void main() 
 {
-	gl_Position = vec4(
-		0.4 * pos.x + xMove, 
-		0.4 * pos.y, 
-		0.4 * pos.z + xMove, 
-		1.0
-	); 	
+	gl_Position = model * vec4(0.4 * pos.x, 0.4 * pos.y, 0.4 * pos.z, 1.0); 	
 };

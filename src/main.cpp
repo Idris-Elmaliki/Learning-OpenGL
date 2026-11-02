@@ -4,24 +4,30 @@
 
 #include <glad/glad.h>
 #include <GLFW/glfw3.h>
+
+// glm includes
+#include <glm/glm.hpp>
+#include <glm/gtc/matrix_transform.hpp>
+#include <glm/gtc/type_ptr.hpp>
+
 #include "readFiles/readFile.hpp" 
 #include <openglErrorReporting.h>
+
 //#include <gl2d/gl2d.h>
 //#include "imgui.h"
 //#include "backends/imgui_impl_glfw.h"
 //#include "backends/imgui_impl_opengl3.h"
 //#include "imguiThemes.h"
 
-static void error_callback(int error, const char *description)
+static void error_callback(int error, const char* description)
 {
 	std::cout << "Error: " <<  description << "\n";
 }
 
-GLuint VAO, VBO, shader, uniformXMove;
+GLuint VAO, VBO, shader, uniformModel;
 
 bool direction = true; 
 float triOffset = 0.0f, triMaxoffSet = 0.7f, triIncrement = 0.005f; 
-
 
 static void CreateTriangle(GLfloat* vertices) // don't forget arrays downgrade to pointers!
 {
@@ -115,8 +121,8 @@ void CompileShader(const ShaderSource& shaders)
         assert(res == GL_TRUE);
     }
 
-    // This givs us the location of where the uniform variable we are looking for is
-    uniformXMove = glGetUniformLocation(shader, "xMove"); 
+    // This givs us the location of where the uniform variable we are looking for is at (which is now the matrix 'model')!
+    uniformModel = glGetUniformLocation(shader, "model"); 
 }
 
 int main(void)
@@ -182,7 +188,7 @@ int main(void)
             direction = !direction;
         }
 
-        // chnages the background color
+        // changes the background color
         glClearColor(0.0f, 0.5f, 0.5f, 0.25f);
 
         /* Render here */
@@ -192,8 +198,18 @@ int main(void)
 
         glUseProgram(shader);
 
-        // This binds the uniform in the shader with our current data
-        glUniform1f(uniformXMove, triOffset);
+        // this is how you initialize a 4x4 matrix with glm (specifically an identity matrix)
+        glm::mat4 model(1.0f); 
+        
+        /*
+        * glm::translate does this:
+        *   Takes in a 4x4 matrix we want to edit
+        *   Takes in a vec3 that defines how we want to edit the matrix
+        */
+
+        model = glm::translate(model, glm::vec3(triOffset, 0.0f, triOffset));
+
+        glUniformMatrix4fv(uniformModel, 1, GL_FALSE, glm::value_ptr(model)); 
 
         glBindVertexArray(VAO);
         glDrawArrays(GL_TRIANGLES, 0, 3);
