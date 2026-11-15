@@ -26,8 +26,11 @@ static void error_callback(int error, const char* description)
 
 GLuint VAO, VBO, shader, uniformModel;
 
-bool direction = true; 
+bool direction = true;
 float triOffset = 0.0f, triMaxoffSet = 0.7f, triIncrement = 0.005f; 
+
+bool size = true;
+float currSize = 0.2f, maxSize = 0.4f, minSize = 0.1f; 
 
 static void CreateTriangle(GLfloat* vertices) // don't forget arrays downgrade to pointers!
 {
@@ -103,7 +106,6 @@ void CompileShader(const ShaderSource& shaders)
     glGetProgramiv(shader, GL_LINK_STATUS, &res); // we get the program info (link status in this case) and store the result in res
 
     // if res is false, then we will get the log and print it to the console!
-
     if (res == GL_FALSE) {
         glGetProgramInfoLog(shader, sizeof(errLog), nullptr, errLog);
         std::cout << "Shader Linking Error: " << errLog << '\n'; 
@@ -185,15 +187,30 @@ int main(void)
             triOffset -= triIncrement;
         }
 
+        if (abs(triOffset) >= triMaxoffSet) 
+        {
+            direction = !direction;
+        }
 
         angle += 0.1f;
-        if (angle > 360.0f) {
+        if (angle > 360.0f)
+        {
             angle -= 360.0f;
         }
 
-        if (abs(triOffset) >= triMaxoffSet) {
-            direction = !direction;
+        if (size) 
+        {
+            currSize += 0.001f; 
         }
+        else 
+        {
+            currSize -= 0.001f; 
+        }
+
+        if (currSize >= maxSize || currSize <= minSize) {
+            size = !size;
+        }
+
 
         // changes the background color
         glClearColor(0.0f, 0.5f, 0.5f, 0.25f);
@@ -204,50 +221,23 @@ int main(void)
         glClear(GL_COLOR_BUFFER_BIT);
 
         glUseProgram(shader);
-
-        // this is how you initialize a 4x4 matrix with glm (specifically an identity matrix)
-        
-        /*
-        * We need a 4x4 matrix because we use a 4d vector for computer graphics 
-        *(hence why we use vec4 in the vertex shader)!
-        */
+      
         glm::mat4 model(1.0f); 
-        
-        /*
-        * glm::translate does this:
-        *   Takes in a 4x4 matrix we want to edit
-        *   Takes in a vec3 that defines how we want to edit the matrix
-        * 
-        * Now what exactly does glm::translate do?
-        * Well simply put, this is the function that does the math needed to create that vec4!
-        * From there the library will do the math in order to translate the change we want into the vec4!
-        * 
-        * Very simple to understand, with alot of power behind it!
-        */
+   
+        // (Read after)
+        // Now if we scale before translate, then we would be scaling the amount of distance we are also allowed to move
+        // Much like with calling rotate before translate, we would be translating THEN scaling!
+        // So, always run scale last if you want to scale the shader itself ONLY!
 
-        model = glm::translate(model, glm::vec3(triOffset, 0.0f, 0.0f));
-        
-        // glm::rotate takes in a radian argument NOT degrees!
         GLfloat toRadians = glm::radians(angle);
-        // the z axis in this case defines what are object is currently spinning 
+
         model = glm::rotate(model, toRadians, glm::vec3(0.0f, 0.0f, 1.0f));
 
-        // When it comes to translation and rotation, how they run is in the opposite order
-        // So we rotate THEN translate!
 
-        /*
-        * One thing you will notice is that the triangle is distorted, why is that?
-        * 
-        * Well that is because whenever we are rotating, we are actually switching at which points the edges of the coordinates are
-        * What does that mean? So let's say we rotation 90 degrees, now the left side will be [1, 1] instead of [1,-1]!
-        * 
-        * Essentially the triangle is based on our actual window! 
-        * So let's say that we have a 800x600 window, if we rotate 90 degrees, the triangle will act like its 600x800 instead!
-        * 
-        * Hence the distortion!
-        * 
-        * Now how do we avoid this? By using a projection Matrix!
-        */
+        model = glm::translate(model, glm::vec3(triOffset, 0.0f, 0.0f));
+
+        // scaling is also another very important function to go over
+        model = glm::scale(model, glm::vec3(currSize, currSize, 1.0f));
 
         glUniformMatrix4fv(uniformModel, 1, GL_FALSE, glm::value_ptr(model)); 
 

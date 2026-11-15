@@ -20,5 +20,8 @@ uniform mat4 model;
 void main() 
 {
 	// Here we are multiplying the 4x4 matrix we made by our previously added vec4!  
-	gl_Position = model * vec4(0.4 * pos.x, 0.4 * pos.y, 0.4 * pos.z, 1.0); 	
+
+	// with glm::scale, we can scale our 4x4 matrix before passing it into the shader
+	// in addition, we can just pass in our vec3, instead of calling each member indiviually!
+	gl_Position = model * vec4(pos, 1.0); 	
 };
