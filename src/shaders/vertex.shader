@@ -19,5 +19,6 @@ uniform mat4 model;
 
 void main() 
 {
+	// Here we are multiplying the 4x4 matrix we made by our previously added vec4!  
 	gl_Position = model * vec4(0.4 * pos.x, 0.4 * pos.y, 0.4 * pos.z, 1.0); 	
 };
